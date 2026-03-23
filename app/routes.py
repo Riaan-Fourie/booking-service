@@ -330,6 +330,14 @@ async def serve_generic_booking_page(request: Request):
     html = html.replace("{{OWNER_NAME}}", _escape_html(config.OWNER_NAME))
     html = html.replace("{{OWNER_FIRST_NAME}}", _escape_js(config.OWNER_FIRST_NAME))
 
+    # Inject meeting types map for duration picker on generic page
+    duration_options = [
+        {"key": k, "duration": v["duration"], "label": v["label"], "slug": v["slug"], "event_type_id": v["event_type_id"]}
+        for k, v in config.MEETING_TYPES.items() if k != "none" and v["duration"] in (15, 30, 45, 60)
+    ]
+    html = html.replace("{{DURATION_OPTIONS}}", json.dumps(duration_options))
+    html = html.replace("{{CAL_USERNAME}}", _escape_js(config.CAL_USERNAME))
+
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=300"})
 
 
@@ -476,6 +484,8 @@ async def serve_booking_page(slug: str, request: Request):
     html = html.replace("{{PRELOADED_SLOTS}}", prefetched)
     html = html.replace("{{OWNER_NAME}}", _escape_html(config.OWNER_NAME))
     html = html.replace("{{OWNER_FIRST_NAME}}", _escape_js(config.OWNER_FIRST_NAME))
+    html = html.replace("{{DURATION_OPTIONS}}", "[]")
+    html = html.replace("{{CAL_USERNAME}}", _escape_js(config.CAL_USERNAME))
 
     return HTMLResponse(content=html, headers=no_cache)
 

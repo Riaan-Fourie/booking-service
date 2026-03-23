@@ -182,6 +182,25 @@
     }
     .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-400); }
 
+    /* ─── Duration picker ──────────────────────────────────────── */
+    .duration-picker { margin-top: 24px; }
+    .duration-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .5px; color: rgba(255,255,255,.45); margin-bottom: 8px;
+    }
+    .duration-options { display: flex; gap: 6px; flex-wrap: wrap; }
+    .dur-btn {
+      padding: 7px 16px; border-radius: 999px; font-size: 13px; font-weight: 500;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.65); cursor: pointer; font-family: inherit;
+      transition: all .15s;
+    }
+    .dur-btn:hover { background: rgba(255,255,255,.12); color: rgba(255,255,255,.9); }
+    .dur-btn.active {
+      background: var(--accent-400); color: var(--accent-950);
+      border-color: var(--accent-400); font-weight: 600;
+    }
+
     /* ─── RIGHT PANEL — frosted white glass ──────────────────────── */
     .right {
       flex: 1;
@@ -440,6 +459,11 @@
 
     <div class="closing">{{CLOSING}}</div>
 
+    <div id="durationPicker" class="duration-picker" style="display:none;">
+      <div class="duration-label">How long?</div>
+      <div class="duration-options" id="durationOptions"></div>
+    </div>
+
     <div class="badge">
       <span class="badge-dot"></span>
       <span id="badgeText">{{MEETING_LABEL}}</span>
@@ -549,6 +573,13 @@
   const MEETING_LABEL = '{{JS_MEETING_LABEL}}';
   const PRELOADED_SLOTS = {{PRELOADED_SLOTS}};
   const IS_GENERIC = !INVITE_SLUG;
+  const DURATION_OPTIONS = {{DURATION_OPTIONS}};
+  const CAL_USERNAME = '{{CAL_USERNAME}}';
+
+  // Mutable state for duration switching
+  let currentDuration = DURATION;
+  let currentEventTypeId = EVENT_TYPE_ID;
+  let currentEventSlug = EVENT_SLUG;
 
   // Build badge text: "Name & Owner" or "Label | Name & Owner"
   const OWNER_FIRST = '{{OWNER_FIRST_NAME}}';
@@ -557,11 +588,53 @@
     const nameEl = document.getElementById('personName');
     if (IS_GENERIC) {
       if (nameEl) nameEl.textContent = '{{OWNER_NAME}}';
-      badge.textContent = DURATION + ' min';
+      badge.textContent = currentDuration + ' min';
     } else {
       const names = RECIPIENT_FIRST + ' & ' + OWNER_FIRST;
       badge.textContent = MEETING_LABEL ? MEETING_LABEL + ' | ' + names : names;
     }
+  })();
+
+  // Duration picker (generic page only)
+  (function setupDurationPicker() {
+    if (!IS_GENERIC || !DURATION_OPTIONS.length) return;
+    const picker = document.getElementById('durationPicker');
+    const container = document.getElementById('durationOptions');
+    if (!picker || !container) return;
+
+    // Only show 15, 30, 45, 60 min options
+    const durations = DURATION_OPTIONS.filter(d => [15, 30, 45, 60].includes(d.duration))
+      .sort((a, b) => a.duration - b.duration);
+    if (durations.length < 2) return;
+
+    durations.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'dur-btn' + (opt.duration === currentDuration ? ' active' : '');
+      btn.textContent = opt.duration + ' min';
+      btn.onclick = function() {
+        if (opt.duration === currentDuration) return;
+        currentDuration = opt.duration;
+        currentEventTypeId = opt.event_type_id;
+        currentEventSlug = opt.slug;
+
+        // Update UI
+        container.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('badgeText').textContent = currentDuration + ' min';
+
+        // Reset calendar and reload slots for new event type
+        slotsCache = {};
+        selectedDate = null;
+        selectedSlotISO = null;
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step3').style.display = 'none';
+        fetchSlots(viewYear, viewMonth);
+        renderCalendar();
+      };
+      container.appendChild(btn);
+    });
+
+    picker.style.display = 'block';
   })();
 
   // ── State ────────────────────────────────────────────────────
@@ -634,7 +707,7 @@
     const end = `${endYear}-${pad(endMonth + 1)}-${pad(endDay)}`;
 
     try {
-      const resp = await fetch(`${BASE_URL}/api/v1/cal/slots?start=${start}&end=${end}&tz=${encodeURIComponent(userTZ)}&event_slug=${encodeURIComponent(EVENT_SLUG)}`);
+      const resp = await fetch(`${BASE_URL}/api/v1/cal/slots?start=${start}&end=${end}&tz=${encodeURIComponent(userTZ)}&event_slug=${encodeURIComponent(currentEventSlug)}`);
       if (!resp.ok) throw new Error('Failed to fetch');
       const data = await resp.json();
       Object.assign(slotsCache, data.slots || {});
@@ -735,7 +808,7 @@
     const dayName = DAYS[d.getDay()];
     const monthName = SHORT_MONTHS[d.getMonth()];
     document.getElementById('summaryDate').textContent =
-      `${dayName}, ${monthName} ${d.getDate()} · ${selectedSlotLabel} · ${DURATION} min`;
+      `${dayName}, ${monthName} ${d.getDate()} · ${selectedSlotLabel} · ${currentDuration} min`;
   }
 
   function goToStep1() {
@@ -803,7 +876,7 @@
           notes: notes || null,
           guests: guests.length > 0 ? guests : null,
           invite_slug: INVITE_SLUG || null,
-          event_type_id: EVENT_TYPE_ID,
+          event_type_id: currentEventTypeId,
         }),
       });
 

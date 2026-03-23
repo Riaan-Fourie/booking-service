@@ -23,12 +23,14 @@ class Config:
 
     # Meeting type → Cal.com event type mapping
     MEETING_TYPES: dict = {
+        "quick_call": {"event_type_id": 5130803, "slug": "quick-call", "label": "Quick Call", "duration": 15},
         "discovery_call": {"event_type_id": 5120977, "slug": "discovery-call", "label": "Discovery Call", "duration": 20},
         "coffee_chat": {"event_type_id": 5120981, "slug": "coffee-chat", "label": "Coffee Chat", "duration": 30},
+        "extended_call": {"event_type_id": 5130804, "slug": "extended-call", "label": "Extended Call", "duration": 45},
         "deep_dive": {"event_type_id": 5120983, "slug": "deep-dive", "label": "Deep Dive", "duration": 60},
         "none": {"event_type_id": 5120981, "slug": "coffee-chat", "label": "", "duration": 30},
     }
-    DEFAULT_MEETING_TYPE: str = "discovery_call"
+    DEFAULT_MEETING_TYPE: str = "coffee_chat"
 
 
 config = Config()
