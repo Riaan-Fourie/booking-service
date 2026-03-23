@@ -611,7 +611,7 @@
       const btn = document.createElement('button');
       btn.className = 'dur-btn' + (opt.duration === currentDuration ? ' active' : '');
       btn.textContent = opt.duration + ' min';
-      btn.onclick = function() {
+      btn.onclick = async function() {
         if (opt.duration === currentDuration) return;
         currentDuration = opt.duration;
         currentEventTypeId = opt.event_type_id;
@@ -629,7 +629,7 @@
         selectedSlotISO = null;
         document.getElementById('step2').style.display = 'none';
         document.getElementById('step3').style.display = 'none';
-        fetchSlots(viewYear, viewMonth);
+        await fetchSlots(viewYear, viewMonth);
         renderCalendar();
       };
       container.appendChild(btn);
