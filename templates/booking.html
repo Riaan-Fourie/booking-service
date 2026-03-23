@@ -624,6 +624,7 @@
 
         // Reset calendar and reload slots for new event type
         slotsCache = {};
+        fetchedMonths.clear();
         selectedDate = null;
         selectedSlotISO = null;
         document.getElementById('step2').style.display = 'none';
