@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Booking Admin · Owner Name</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-950: #052e16;
+      --green-900: #14532d;
+      --green-800: #166534;
+      --green-500: #22c55e;
+      --green-400: #4ade80;
+      --slate-900: #0f172a;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-300: #cbd5e1;
+      --slate-100: #f1f5f9;
+      --white: #ffffff;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--white);
+    }
+
+    /* ─── Full-page photo background (same as booking) ──── */
+    .page-bg {
+      position: fixed; inset: 0;
+      background-image: url('/book/static/duckweed-farm.webp');
+      background-size: cover;
+      background-position: center 35%;
+      filter: brightness(1.0) saturate(1.05);
+      z-index: 0;
+    }
+
+    /* ─── Auth screen ──────────────────────────────────── */
+    .auth-wrap {
+      position: relative; z-index: 2;
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .auth-card {
+      background: rgba(4,24,12,.45);
+      backdrop-filter: blur(24px) saturate(1.2);
+      -webkit-backdrop-filter: blur(24px) saturate(1.2);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 20px;
+      padding: 44px 40px; max-width: 380px; width: 100%;
+      box-shadow: 0 40px 100px -16px rgba(0,0,0,.55);
+      text-align: center;
+    }
+    .auth-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.3px; }
+    .auth-sub { font-size: 13px; color: rgba(255,255,255,.5); margin-bottom: 28px; }
+
+    .auth-card .form-input {
+      background: rgba(255,255,255,.08);
+      border: 1.5px solid rgba(255,255,255,.15);
+      color: var(--white);
+    }
+    .auth-card .form-input:focus { border-color: var(--green-400); background: rgba(255,255,255,.12); }
+    .auth-card .form-input::placeholder { color: rgba(255,255,255,.4); }
+    .auth-card .submit-btn {
+      background: var(--green-400); color: var(--green-950);
+    }
+
+    /* ─── Layout ───────────────────────────────────────── */
+    .app { display: none; position: relative; z-index: 2; min-height: 100vh; }
+    .app.active { display: block; }
+
+    .topbar {
+      background: rgba(15,23,42,.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      color: var(--white);
+      padding: 16px 32px; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .topbar-title { font-size: 16px; font-weight: 600; letter-spacing: -.3px; }
+    .topbar-sub { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 2px; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+
+    /* ─── Tabs ─────────────────────────────────────────── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+    .tab {
+      padding: 8px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      background: transparent; border: 1px solid transparent;
+      color: rgba(255,255,255,.5); transition: all .15s;
+    }
+    .tab:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.8); }
+    .tab.active {
+      background: rgba(255,255,255,.12);
+      color: var(--white);
+      border-color: rgba(255,255,255,.12);
+      box-shadow: 0 1px 8px rgba(0,0,0,.15);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ─── Glass panels (neutral dark, not green) ────────── */
+    .glass {
+      background: rgba(15,23,42,.55);
+      backdrop-filter: blur(20px) saturate(1.3);
+      -webkit-backdrop-filter: blur(20px) saturate(1.3);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    /* ─── Invite table ─────────────────────────────────── */
+    .table-wrap {
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .table-scroll {
+      max-height: calc(100vh - 280px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.15) transparent;
+    }
+    .table-scroll::-webkit-scrollbar { width: 6px; }
+    .table-scroll::-webkit-scrollbar-track { background: transparent; }
+    .table-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 3px; }
+    .table-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.25); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; font-size: 11px; font-weight: 600;
+      color: rgba(255,255,255,.5); text-transform: uppercase;
+      letter-spacing: .5px; padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.15);
+      position: sticky; top: 0; z-index: 1;
+    }
+    td {
+      padding: 12px 16px; font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      vertical-align: middle;
+      color: rgba(255,255,255,.9);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.04); }
+    tr.generic-row td { background: rgba(74,222,128,.04); }
+    tr.generic-row:hover td { background: rgba(74,222,128,.08); }
+
+    .status-badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 999px; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .3px;
+    }
+    .status-active { background: rgba(74,222,128,.15); color: #4ade80; }
+    .status-booked { background: rgba(96,165,250,.15); color: #93bbfd; }
+    .status-expired { background: rgba(251,191,36,.12); color: #fbbf24; }
+    .status-cancelled { background: rgba(248,113,113,.12); color: #f87171; }
+    .status-generic { background: rgba(168,85,247,.15); color: #c084fc; }
+
+    .view-count {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11px; color: rgba(255,255,255,.4);
+    }
+    .view-count svg { opacity: .5; }
+
+    .copy-btn {
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 6px; padding: 4px 10px; font-size: 11px;
+      cursor: pointer; color: rgba(255,255,255,.7); font-family: inherit;
+      transition: all .15s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.25); color: var(--white); }
+    .copy-btn.copied { background: rgba(74,222,128,.15); border-color: var(--green-400); color: var(--green-400); }
+
+    .del-btn {
+      background: transparent; border: 1px solid rgba(248,113,113,.25);
+      border-radius: 6px; padding: 4px 8px; font-size: 14px; line-height: 1;
+      cursor: pointer; color: rgba(248,113,113,.6); font-family: inherit;
+      transition: all .15s;
+    }
+    .del-btn:hover { background: rgba(248,113,113,.15); border-color: rgba(248,113,113,.5); color: #f87171; }
+
+    .empty-state {
+      text-align: center; padding: 48px 20px;
+      color: rgba(255,255,255,.4); font-size: 14px;
+    }
+
+    /* ─── Create form ──────────────────────────────────── */
+    .create-center {
+      display: flex; justify-content: center;
+    }
+    .form-card {
+      border-radius: 14px;
+      padding: 28px; max-width: 560px; width: 100%;
+    }
+    .form-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+
+    .form-row { margin-bottom: 16px; }
+    .form-row.half { display: flex; gap: 12px; }
+    .form-row.half > * { flex: 1; }
+
+    .form-label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: rgba(255,255,255,.75); margin-bottom: 5px;
+    }
+    .form-label .opt { font-weight: 400; color: rgba(255,255,255,.4); }
+
+    .form-input, .form-select {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid rgba(255,255,255,.15); border-radius: 8px;
+      font-size: 13px; font-family: inherit;
+      color: var(--white);
+      outline: none; transition: border-color .15s, background .15s;
+      background: rgba(255,255,255,.08);
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--green-400); background: rgba(255,255,255,.12); }
+    .form-input::placeholder { color: rgba(255,255,255,.35); }
+    .form-select { appearance: auto; }
+    .form-select option { background: var(--slate-900); color: var(--white); }
+    textarea.form-input { resize: vertical; line-height: 1.5; }
+
+    .submit-btn {
+      padding: 10px 24px; background: var(--green-400);
+      color: var(--green-950); border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: opacity .15s;
+      margin-top: 4px;
+    }
+    .submit-btn:hover { opacity: .88; }
+    .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .form-success {
+      background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.25);
+      border-radius: 10px; padding: 16px; margin-top: 16px;
+      display: none;
+    }
+    .form-success a {
+      color: var(--green-400); font-weight: 600;
+      word-break: break-all;
+    }
+
+    .form-error-msg {
+      color: #f87171; font-size: 12px; margin-top: 8px; display: none;
+    }
+
+    /* ─── Stats row ────────────────────────────────────── */
+    .stats { display: flex; gap: 12px; margin-bottom: 24px; }
+    .stat-card {
+      border-radius: 12px;
+      padding: 16px 20px; flex: 1;
+    }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--white); }
+    .stat-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
+
+    /* ─── Responsive ───────────────────────────────────── */
+    @media (max-width: 640px) {
+      .stats { flex-direction: column; gap: 8px; }
+      .form-row.half { flex-direction: column; gap: 16px; }
+      .topbar { padding: 14px 16px; }
+      .container { padding: 20px 14px; }
+      td, th { padding: 10px 10px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-bg"></div>
+
+<!-- Auth screen -->
+<div class="auth-wrap" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-title">Booking Admin</div>
+    <div class="auth-sub">Sign in to manage booking invites</div>
+    <form id="loginForm" onsubmit="authenticate(event)" autocomplete="on">
+      <input class="form-input" type="text" name="username" autocomplete="username" value="admin" style="display:none;">
+      <input class="form-input" type="password" name="password" id="passwordInput" autocomplete="current-password" placeholder="Password" style="margin-bottom:12px; text-align:center;">
+      <button type="submit" class="submit-btn" style="width:100%;">Sign in</button>
+    </form>
+    <div class="form-error-msg" id="authError" style="text-align:center;"></div>
+  </div>
+</div>
+
+<!-- Main app -->
+<div class="app" id="mainApp">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Booking Admin</div>
+      <div class="topbar-sub">book.example.com</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="stats" id="stats"></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('invites')">All Invites</div>
+      <div class="tab" onclick="switchTab('create')">Create New</div>
+    </div>
+
+    <!-- Invites panel -->
+    <div class="panel active" id="panel-invites">
+      <div class="table-wrap glass">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Recipient</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Views</th>
+                <th>Created</th>
+                <th>Link</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="invitesBody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="emptyState" style="display:none;">No invites yet. Create one to get started.</div>
+      </div>
+    </div>
+
+    <!-- Create panel -->
+    <div class="panel" id="panel-create">
+      <div class="create-center">
+        <div class="form-card glass">
+          <div class="form-title">Create Booking Invite</div>
+
+          <div class="form-row half">
+            <div>
+              <label class="form-label">Full name</label>
+              <input class="form-input" id="f-name" placeholder="Jamie Stein">
+            </div>
+            <div>
+              <label class="form-label">First name</label>
+              <input class="form-input" id="f-first" placeholder="Jamie">
+            </div>
+          </div>
+
+          <div class="form-row half">
+            <div>
+              <label class="form-label">Email <span class="opt">(optional)</span></label>
+              <input class="form-input" type="email" id="f-email" placeholder="jamie@company.com">
+            </div>
+            <div>
+              <label class="form-label">Meeting type</label>
+              <select class="form-select" id="f-type">
+                <option value="none">No label (30 min)</option>
+                <option value="discovery_call">Discovery Call (20 min)</option>
+                <option value="coffee_chat">Coffee Chat (30 min)</option>
+                <option value="deep_dive">Deep Dive (60 min)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">Context quote <span class="opt">(optional)</span></label>
+            <textarea class="form-input" id="f-context" rows="2" placeholder="Why you're reaching out..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">Closing line <span class="opt">(optional)</span></label>
+            <input class="form-input" id="f-closing" placeholder="Looking forward to the conversation." value="Looking forward to the conversation.">
+          </div>
+
+          <button class="submit-btn" id="createBtn" onclick="createInvite()">Create invite</button>
+          <div class="form-error-msg" id="createError"></div>
+
+          <div class="form-success" id="createSuccess">
+            <div style="font-size:13px; font-weight:600; color:var(--green-400); margin-bottom:6px;">Invite created!</div>
+            <a id="createdUrl" href="#" target="_blank"></a>
+            <button class="copy-btn" style="margin-top:10px; display:block;" onclick="copyCreatedUrl()">Copy link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BASE_URL = window.location.origin;
+  const GENERIC_URL = BASE_URL + '/book';
+  let API_KEY = '';
+
+  const eyeIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  // ── Auth ────────────────────────────────────────────
+  function authenticate(e) {
+    if (e) e.preventDefault();
+    const password = document.getElementById('passwordInput').value.trim();
+    if (!password) return;
+
+    fetch(`${BASE_URL}/api/v1/admin/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    }).then(r => {
+      if (!r.ok) throw new Error('Wrong password');
+      return r.json();
+    }).then(data => {
+      API_KEY = data.api_key;
+      sessionStorage.setItem('booking_api_key', API_KEY);
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainApp').classList.add('active');
+      loadInvites();
+    }).catch(() => {
+      const err = document.getElementById('authError');
+      err.textContent = 'Wrong password. Try again.';
+      err.style.display = 'block';
+    });
+  }
+
+  // Auto-login if session still valid
+  (function checkSession() {
+    const saved = sessionStorage.getItem('booking_api_key');
+    if (saved) {
+      fetch(`${BASE_URL}/api/v1/invites`, {
+        headers: { 'X-API-Key': saved }
+      }).then(r => {
+        if (!r.ok) throw new Error();
+        API_KEY = saved;
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('mainApp').classList.add('active');
+        loadInvites();
+      }).catch(() => sessionStorage.removeItem('booking_api_key'));
+    }
+  })();
+
+  // ── Load invites ────────────────────────────────────
+  async function loadInvites() {
+    const resp = await fetch(`${BASE_URL}/api/v1/invites`, {
+      headers: { 'X-API-Key': API_KEY }
+    });
+    const data = await resp.json();
+    const invites = data.invites || [];
+    const genericViews = data.generic_views || 0;
+
+    // Stats
+    const active = invites.filter(i => i.status === 'active').length;
+    const booked = invites.filter(i => i.status === 'booked').length;
+    const totalViews = invites.reduce((sum, i) => sum + (i.view_count || 0), 0) + genericViews;
+    document.getElementById('stats').innerHTML = `
+      <div class="stat-card glass"><div class="stat-value">${invites.length}</div><div class="stat-label">Total invites</div></div>
+      <div class="stat-card glass"><div class="stat-value">${active}</div><div class="stat-label">Active</div></div>
+      <div class="stat-card glass"><div class="stat-value">${booked}</div><div class="stat-label">Booked</div></div>
+      <div class="stat-card glass"><div class="stat-value">${totalViews}</div><div class="stat-label">Total views</div></div>
+    `;
+
+    // Table
+    const tbody = document.getElementById('invitesBody');
+    document.getElementById('emptyState').style.display = 'none';
+
+    // Generic link row (always first)
+    let rows = `<tr class="generic-row">
+      <td><strong>Generic Link</strong><br><span style="font-size:11px;color:rgba(255,255,255,.45);">book.example.com</span></td>
+      <td style="font-size:12px; color:rgba(255,255,255,.55);">Open booking</td>
+      <td><span class="status-badge status-generic">always on</span></td>
+      <td><span class="view-count">${eyeIcon} ${genericViews}</span></td>
+      <td style="font-size:12px; color:rgba(255,255,255,.45);">&mdash;</td>
+      <td><button class="copy-btn" onclick="copyUrl(this, '${GENERIC_URL}')">Copy link</button></td>
+      <td></td>
+    </tr>`;
+
+    if (invites.length === 0) {
+      tbody.innerHTML = rows;
+      return;
+    }
+
+    rows += invites.map(inv => {
+      const statusClass = `status-${inv.status}`;
+      const date = inv.created_at ? new Date(inv.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '-';
+      const bookedDate = inv.booked_at ? `<br><span style="font-size:11px; color:rgba(255,255,255,.4);">booked ${new Date(inv.booked_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>` : '';
+      const typeLabel = inv.meeting_label || 'Call';
+      const dur = inv.duration_minutes || '?';
+      const views = inv.view_count || 0;
+
+      return `<tr>
+        <td><strong>${esc(inv.recipient_name)}</strong>${inv.recipient_email ? `<br><span style="font-size:11px;color:rgba(255,255,255,.45);">${esc(inv.recipient_email)}</span>` : ''}</td>
+        <td style="font-size:12px; color:rgba(255,255,255,.55);">${esc(typeLabel)} <span style="color:rgba(255,255,255,.3);">${dur}m</span></td>
+        <td><span class="status-badge ${statusClass}">${inv.status}</span>${bookedDate}</td>
+        <td><span class="view-count">${eyeIcon} ${views}</span></td>
+        <td style="font-size:12px; color:rgba(255,255,255,.45);">${date}</td>
+        <td><button class="copy-btn" onclick="copyUrl(this, '${esc(inv.url)}')">Copy link</button></td>
+        <td><button class="del-btn" onclick="deleteInvite(this, '${esc(inv.id)}', '${esc(inv.recipient_name)}')" title="Delete invite">&times;</button></td>
+      </tr>`;
+    }).join('');
+
+    tbody.innerHTML = rows;
+  }
+
+  // ── Create invite ───────────────────────────────────
+  async function createInvite() {
+    const name = document.getElementById('f-name').value.trim();
+    const first = document.getElementById('f-first').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    const type = document.getElementById('f-type').value;
+    const context = document.getElementById('f-context').value.trim();
+    const closing = document.getElementById('f-closing').value.trim();
+    const errEl = document.getElementById('createError');
+    const btn = document.getElementById('createBtn');
+
+    if (!name || !first) {
+      errEl.textContent = 'Full name and first name are required.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+    errEl.style.display = 'none';
+    document.getElementById('createSuccess').style.display = 'none';
+
+    try {
+      const body = {
+        recipient_name: name,
+        recipient_first_name: first,
+        meeting_type: type,
+      };
+      if (email) body.recipient_email = email;
+      if (context) body.context_quote = context;
+      if (closing) body.closing = closing;
+
+      const resp = await fetch(`${BASE_URL}/api/v1/invites`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+        body: JSON.stringify(body),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to create invite');
+      }
+
+      const data = await resp.json();
+      const successEl = document.getElementById('createSuccess');
+      const urlEl = document.getElementById('createdUrl');
+      urlEl.href = data.url;
+      urlEl.textContent = data.url;
+      successEl.style.display = 'block';
+
+      // Auto-copy link to clipboard
+      try {
+        await navigator.clipboard.writeText(data.url);
+        const copyBtn = successEl.querySelector('.copy-btn');
+        if (copyBtn) { copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied'); setTimeout(() => { copyBtn.textContent = 'Copy link'; copyBtn.classList.remove('copied'); }, 2000); }
+      } catch (_) { /* clipboard may fail without user gesture in some browsers */ }
+
+      // Clear form
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-first').value = '';
+      document.getElementById('f-email').value = '';
+      document.getElementById('f-context').value = '';
+
+      // Refresh invites list
+      loadInvites();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create invite';
+    }
+  }
+
+  // ── Helpers ─────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(`panel-${tab}`).classList.add('active');
+  }
+
+  function copyUrl(btn, url) {
+    navigator.clipboard.writeText(url);
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy link'; btn.classList.remove('copied'); }, 1500);
+  }
+
+  function copyCreatedUrl() {
+    const url = document.getElementById('createdUrl').textContent;
+    navigator.clipboard.writeText(url);
+    event.target.textContent = 'Copied!';
+    event.target.classList.add('copied');
+    setTimeout(() => { event.target.textContent = 'Copy link'; event.target.classList.remove('copied'); }, 1500);
+  }
+
+  async function deleteInvite(btn, id, name) {
+    if (!confirm(`Delete invite for "${name}"? This cannot be undone.`)) return;
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+      const resp = await fetch(`${BASE_URL}/api/v1/invites/${id}`, {
+        method: 'DELETE',
+        headers: { 'X-API-Key': API_KEY }
+      });
+      if (!resp.ok) throw new Error('Failed to delete');
+      loadInvites();
+    } catch (err) {
+      alert('Failed to delete invite: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = '\u00d7';
+    }
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+</script>
+
+</body>
+</html>

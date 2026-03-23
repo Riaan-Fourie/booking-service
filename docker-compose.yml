@@ -1,0 +1,13 @@
+services:
+  booking:
+    build: .
+    container_name: booking-service
+    env_file: .env
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
