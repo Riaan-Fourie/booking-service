@@ -4,7 +4,7 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.routes import router
 
@@ -40,8 +40,8 @@ async def health_check():
 
 @app.get("/")
 async def root():
-    """Root endpoint (health check fallback)."""
-    return {"status": "healthy", "service": "jarvis-booking-service"}
+    """Redirect root to booking page."""
+    return RedirectResponse(url="/book", status_code=301)
 
 
 @app.exception_handler(404)
