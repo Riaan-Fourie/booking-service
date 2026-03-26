@@ -3,20 +3,19 @@
 ## 2026-03-23 — Initial Setup & Rebranding
 
 ### What was done
-- Rebranded from "[Previous Owner]" to "Owner Name" across all files
+- Rebranded from "[Previous Owner]" to "[Owner]" across all files
 - Made owner name config-driven (`OWNER_NAME`, `OWNER_FIRST_NAME` env vars)
-- Updated Cal.com config with Owner's account:
+- Updated Cal.com config with owner's account:
   - Username: `your-username`
-  - Created 3 event types: Discovery Call (5120977), Coffee Chat (5120981), Deep Dive (5120983)
+  - Created 3 event types: Discovery Call, Coffee Chat, Deep Dive
   - Generated API key
-- Created docker-compose.yml for Hetzner deployment
+- Created docker-compose.yml for VPS deployment
 - Added curl to Dockerfile for healthcheck
 - Removed GCP-specific cloudbuild.yaml
-- Updated .env.example with Owner's Supabase + Cal.com config
+- Updated .env.example with Supabase + Cal.com config
 - Created CLAUDE.md, PROGRESS.md, README.md
 - Created `booking_invites` table in Supabase
-- Registered in repos.json, added Makefile targets
-- Deployed to Hetzner VPS with Caddy reverse proxy
+- Deployed to VPS with Caddy reverse proxy
 
 ### Files changed
 - `app/config.py` — owner name vars, Cal.com IDs, defaults
@@ -25,7 +24,7 @@
 - `app/cal_client.py` — updated docstring
 - `templates/booking.html` — rebranded name, avatar, JS badge
 - `templates/admin.html` — rebranded name, domain
-- `.env.example` — updated for Owner's setup
+- `.env.example` — updated for owner's setup
 - `Dockerfile` — added curl
-- `docker-compose.yml` — new (Hetzner deployment)
-- `static/avatar.webp` — placeholder (copy of original)
+- `docker-compose.yml` — new (VPS deployment)
+- `static/avatar.webp` — placeholder

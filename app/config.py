@@ -13,22 +13,22 @@ class Config:
     CAL_API_BASE: str = "https://api.cal.com/v2"
     CAL_USERNAME: str = os.getenv("CAL_USERNAME", "your-username")
     CAL_EVENT_SLUG: str = "discovery-call"
-    CAL_EVENT_TYPE_ID: int = 5120977
+    CAL_EVENT_TYPE_ID: int = 0
     BASE_URL: str = os.getenv("BASE_URL", "https://book.example.com")
     PORT: int = int(os.getenv("PORT", "8080"))
 
     # Owner identity (used in templates, OG images, error pages)
-    OWNER_NAME: str = os.getenv("OWNER_NAME", "Owner Name")
+    OWNER_NAME: str = os.getenv("OWNER_NAME", "Your Name")
     OWNER_FIRST_NAME: str = os.getenv("OWNER_FIRST_NAME", "Owner")
 
     # Meeting type → Cal.com event type mapping
     MEETING_TYPES: dict = {
-        "quick_call": {"event_type_id": 5130803, "slug": "quick-call", "label": "Quick Call", "duration": 15},
-        "discovery_call": {"event_type_id": 5120977, "slug": "discovery-call", "label": "Discovery Call", "duration": 20},
-        "coffee_chat": {"event_type_id": 5120981, "slug": "coffee-chat", "label": "Coffee Chat", "duration": 30},
-        "extended_call": {"event_type_id": 5130804, "slug": "extended-call", "label": "Extended Call", "duration": 45},
-        "deep_dive": {"event_type_id": 5120983, "slug": "deep-dive", "label": "Deep Dive", "duration": 60},
-        "none": {"event_type_id": 5120981, "slug": "coffee-chat", "label": "", "duration": 30},
+        "quick_call": {"event_type_id": 0, "slug": "quick-call", "label": "Quick Call", "duration": 15},
+        "discovery_call": {"event_type_id": 0, "slug": "discovery-call", "label": "Discovery Call", "duration": 20},
+        "coffee_chat": {"event_type_id": 0, "slug": "coffee-chat", "label": "Coffee Chat", "duration": 30},
+        "extended_call": {"event_type_id": 0, "slug": "extended-call", "label": "Extended Call", "duration": 45},
+        "deep_dive": {"event_type_id": 0, "slug": "deep-dive", "label": "Deep Dive", "duration": 60},
+        "none": {"event_type_id": 0, "slug": "coffee-chat", "label": "", "duration": 30},
     }
     DEFAULT_MEETING_TYPE: str = "coffee_chat"
 

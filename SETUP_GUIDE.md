@@ -44,7 +44,7 @@ yourdomain.com/book/{slug}
 ## What You Need to Customize
 
 ### 1. Personal Information (MUST CHANGE)
-- **Your name** everywhere (replace "[Previous Owner]" with your name)
+- **Your name** everywhere (replace "[Example Name]" with your name)
 - **Your avatar photo** (replace `static/avatar.webp` with your headshot)
 - **Your Cal.com username** (replace `example-user` in config.py)
 - **Your domain** (replace `example.com` with your domain)
@@ -221,7 +221,7 @@ Visit `https://yourdomain.com/book/admin`, log in with your admin password, and 
 ### OG Image Generation
 When the link is shared on WhatsApp/LinkedIn/Telegram, crawlers hit `/book/og/{slug}.jpg` which:
 1. Uses a pre-computed gradient-overlaid background image (cached at startup)
-2. Overlays personalized text ("Jonas & [Owner]") using Pillow
+2. Overlays personalized text ("[Example Names]") using Pillow
 3. Returns a JPEG (~88KB, optimized for WhatsApp's timeout constraints)
 
 ### Theme System

@@ -9,11 +9,11 @@ FastAPI service that generates personalized calendar booking URLs for outreach. 
 - **Calendar:** Cal.com API v2 (slots + bookings)
 - **OG Images:** Pillow (dynamic JPEG generation)
 - **Frontend:** Vanilla HTML/CSS/JS (server-side template replacement)
-- **Deployment:** Docker on Hetzner VPS, Caddy reverse proxy
+- **Deployment:** Docker on any VPS, reverse proxy (Caddy/Nginx) recommended
 
 ## Key Files
 - `app/config.py` — Central config (Cal.com IDs, owner name, meeting types)
-- `app/routes.py` — All API endpoints + page rendering (~890 lines)
+- `app/routes.py` — All API endpoints + page rendering
 - `app/cal_client.py` — Cal.com API v2 client with retries
 - `app/og_image.py` — Pillow-based OG image generation
 - `templates/booking.html` — Main booking page template
@@ -21,23 +21,20 @@ FastAPI service that generates personalized calendar booking URLs for outreach. 
 - `static/` — Avatar, background images
 
 ## Cal.com Event Types
-| Type | ID | Slug | Duration |
-|------|-----|------|----------|
-| Discovery Call | 5120977 | discovery-call | 20m |
-| Coffee Chat | 5120981 | coffee-chat | 30m |
-| Deep Dive | 5120983 | deep-dive | 60m |
-
-Cal.com username: `your-username`
+Configure your Cal.com event type IDs in `app/config.py` under `MEETING_TYPES`. Each entry needs:
+- `event_type_id` — from your Cal.com dashboard URL when editing the event type
+- `slug` — the URL slug for the event type
+- `label` — display name
+- `duration` — meeting length in minutes
 
 ## Deployment
-- **Domain:** `book.example.com`
-- **VPS:** Hetzner 0.0.0.0 (claw user)
-- **Reverse proxy:** Caddy (auto-HTTPS)
+- **Domain:** Configure via `BASE_URL` env var
+- **Reverse proxy:** Caddy or Nginx (auto-HTTPS recommended)
 - **Container:** `docker compose up --build -d`
 - **Health check:** `GET /health`
 
 ## Admin
-- Dashboard: `https://book.example.com/book/admin`
+- Dashboard: `https://<your-domain>/book/admin`
 - API: `POST /api/v1/invites` with `X-API-Key` header
 - Auth: `POST /api/v1/admin/auth` with password
 
