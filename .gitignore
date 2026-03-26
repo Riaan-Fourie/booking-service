@@ -6,3 +6,5 @@ __pycache__/
 backups/
 *.pem
 *.key
+.venv/
+.pytest_cache/

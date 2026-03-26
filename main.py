@@ -1,6 +1,7 @@
-"""Jarvis Booking Service — personalized booking pages with Cal.com embed."""
+"""Booking Service — personalized booking pages with Cal.com embed."""
 
 import logging
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,15 +16,16 @@ logging.basicConfig(
 logger = logging.getLogger("booking")
 
 app = FastAPI(
-    title="Jarvis Booking Service",
+    title="Booking Service",
     description="Personalized booking pages with Cal.com integration",
     version="1.0.0",
 )
 
-# CORS
+# CORS — configure via CORS_ORIGINS env var (comma-separated), defaults to "*"
+origins = os.getenv("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -34,8 +36,8 @@ app.include_router(router)
 
 @app.get("/health")
 async def health_check():
-    """Health check for Cloud Run load balancer."""
-    return {"status": "healthy", "service": "jarvis-booking-service"}
+    """Health check endpoint."""
+    return {"status": "healthy", "service": "booking-service"}
 
 
 @app.get("/")
