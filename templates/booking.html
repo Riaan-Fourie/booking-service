@@ -622,15 +622,41 @@
         btn.classList.add('active');
         document.getElementById('badgeText').textContent = currentDuration + ' min';
 
-        // Reset calendar and reload slots for new event type
+        // Reset calendar and reload slots for new event type.
+        //
+        // The times already on screen belong to the PREVIOUS duration and are
+        // wrong for this one: a 60-minute call needs a 60-minute gap, so the
+        // 30-minute list offers starts that run straight into an existing
+        // meeting. Clear them BEFORE awaiting the refetch, otherwise a visitor
+        // can click a stale slot while the request is in flight and book a
+        // double-booking. (Jarvis #431)
+        const prevSelectedDate = selectedDate;
         slotsCache = {};
         fetchedMonths.clear();
         selectedDate = null;
         selectedSlotISO = null;
+        selectedSlotLabel = null;
+        slotsList.innerHTML = '';
+        slotsPanel.style.visibility = 'hidden';
         document.getElementById('step2').style.display = 'none';
         document.getElementById('step3').style.display = 'none';
-        await fetchSlots(viewYear, viewMonth);
+
+        try {
+          await fetchSlots(viewYear, viewMonth);
+        } catch (err) {
+          // Leave the panel empty rather than restoring stale times.
+          renderCalendar();
+          return;
+        }
         renderCalendar();
+
+        // Re-open the day the visitor was already looking at, so switching
+        // duration does not silently throw away their place. Only if that day
+        // still has availability at the new duration.
+        if (prevSelectedDate && (slotsCache[prevSelectedDate] || []).length) {
+          const el = calDays.querySelector(`.cal-day.available[data-key="${prevSelectedDate}"]`);
+          if (el) selectDay(prevSelectedDate, el);
+        }
       };
       container.appendChild(btn);
     });
@@ -745,6 +771,8 @@
       const key = dateKey(viewYear, viewMonth, d);
       const slots = slotsCache[key];
       const isPast = new Date(viewYear, viewMonth, d) < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      el.dataset.key = key;  // lets the duration picker re-open the same day
 
       if (isPast) {
         el.className = 'cal-day past';
